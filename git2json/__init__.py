@@ -65,7 +65,8 @@ def run_git_log(git_dir=None, git_since=None):
             '--git-dir=' + git_dir,
             'log',
             '--numstat',
-            '--pretty=raw'
+            '--pretty=raw',
+            '--remotes'
         ]
     else:
         command = ['git', 'log', '--numstat', '--pretty=raw']
