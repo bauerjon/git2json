@@ -56,7 +56,7 @@ def git2json(fil):
 def run_git_log(git_dir=None, git_since=None):
     '''run_git_log([git_dir]) -> File
 
-    Run `git log --numstat --pretty=raw` on the specified
+    Run `git log --numstat --pretty=raw --remotes on the specified
     git repository and return its stdout as a pseudo-File.'''
     import subprocess
     if git_dir:
@@ -69,7 +69,7 @@ def run_git_log(git_dir=None, git_since=None):
             '--remotes'
         ]
     else:
-        command = ['git', 'log', '--numstat', '--pretty=raw']
+        command = ['git', 'log', '--numstat', '--pretty=raw', '--remotes']
     if git_since is not None:
         command.append('--since=' + git_since)
     raw_git_log = subprocess.Popen(
