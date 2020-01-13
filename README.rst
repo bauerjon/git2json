@@ -4,7 +4,7 @@ Git2JSON
 
 .. image:: https://badge.fury.io/py/git2json.png
     :target: http://badge.fury.io/py/git2json
-    
+
 .. image:: https://travis-ci.org/tarmstrong/git2json.png?branch=master
         :target: https://travis-ci.org/tarmstrong/git2json
 
@@ -47,6 +47,9 @@ Usage
       --git-dir GIT_DIR  Path to the .git/ directory of the repository you are
                          targeting
       --since SINCE      Show commits more recent than a specific date. If
+                         present, this argument is passed through to "git log"
+                         unchecked.
+      --until UNTIL      Show commits before a specific date. If
                          present, this argument is passed through to "git log"
                          unchecked.
 
