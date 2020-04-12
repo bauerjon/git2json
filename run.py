@@ -18,8 +18,6 @@ __version__ = '0.2.3'
 
 
 def main():
-    print('got here')
-
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument(
