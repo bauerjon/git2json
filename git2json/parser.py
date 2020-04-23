@@ -33,6 +33,13 @@ tree\ (?P<tree>[a-f0-9]+)\n
 '''
 RE_COMMIT = re.compile(PAT_COMMIT, re.MULTILINE | re.VERBOSE)
 
+# https://regex101.com/r/g41DnR/1
+# https://regex101.com/r/g41DnR/1
+# https://regex101.com/r/g41DnR/3
+PAT_COMMIT_WITH_SIG = (r"(commit\ (?P<commit>[a-f0-9]+)\ntree\ (?P<tree>[a-f0-9]+)\n(?P<parents>(parent\ ([a-f0-9]|\n)+)*)(?P<author>author .*)\n(?P<committer>committer .*)\n(?P<gpgsig>gpgsig -----BEGIN PGP SIGNATURE-----(.|\n|\r)+?-----END PGP SIGNATURE-----)?(\ \n|\n|\r)*(?P<message>((\ \ \ \ [^\n]*\n)|\n)+)?(\n)?(?P<numstats>(^(\d+|-).*(\n)?)+)?)")
+
+RE_COMMIT_WITH_PGP_SIGNATURE = re.compile(PAT_COMMIT_WITH_SIG, re.MULTILINE)
+
 # -------------------------------------------------------------------
 # Main parsing functions
 
@@ -42,12 +49,27 @@ def parse_commits(data):
     Parse and yield each commit-dictionary.
     This function is a generator.
     '''
+    dict_of_commits = dict()
+
     raw_commits = RE_COMMIT.finditer(data)
     for rc in raw_commits:
         full_commit = rc.groups()[0]
         parts = RE_COMMIT.match(full_commit).groupdict()
         parsed_commit = parse_commit(parts)
-        yield parsed_commit
+        dict_of_commits[parsed_commit['commit']] = parsed_commit
+
+    # added this as a supplement regex to catch commits with merges and pgp signatures
+    # might work fine on its own but wanted to ensure backwards compatability
+    raw_commits = RE_COMMIT_WITH_PGP_SIGNATURE.finditer(data)
+    for rc in raw_commits:
+        full_commit = rc.groups()[0]
+        parts = RE_COMMIT_WITH_PGP_SIGNATURE.match(full_commit).groupdict()
+        parsed_commit = parse_commit(parts)
+        dict_of_commits[parsed_commit['commit']] = parsed_commit
+
+    for key in dict_of_commits:
+        yield dict_of_commits[key]
+
 
 
 def parse_commit(parts):
@@ -78,11 +100,15 @@ def parse_commit(parts):
         message_lines
         if msgline is not None
     )
-    commit['changes'] = [
-        parse_numstat_line(numstat)
-        for numstat in
-        parts['numstats'].splitlines()
-    ]
+    if parts['numstats'] is not None:
+      commit['changes'] = [
+          parse_numstat_line(numstat)
+          for numstat in
+          parts['numstats'].splitlines()
+      ]
+    else:
+      commit['changes'] = []
+
     return commit
 
 
