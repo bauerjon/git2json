@@ -45,29 +45,32 @@ RE_COMMIT_WITH_PGP_SIGNATURE = re.compile(PAT_COMMIT_WITH_SIG, re.MULTILINE)
 
 
 def parse_commits(data):
-    text_file = open("sample.txt", "w")
-    n = text_file.write(data)
-    text_file.close()
     '''Accept a string and parse it into many commits.
     Parse and yield each commit-dictionary.
     This function is a generator.
     '''
+    dict_of_commits = dict()
+
     raw_commits = RE_COMMIT.finditer(data)
     for rc in raw_commits:
         full_commit = rc.groups()[0]
         parts = RE_COMMIT.match(full_commit).groupdict()
         parsed_commit = parse_commit(parts)
-        yield parsed_commit
+        dict_of_commits[parsed_commit['commit']] = parsed_commit
 
+    # added this as a supplement regex to catch commits with merges and pgp signatures
+    # might work fine on its own but wanted to ensure backwards compatability
     raw_commits = RE_COMMIT_WITH_PGP_SIGNATURE.finditer(data)
     for rc in raw_commits:
-        print 'yessss'
-        print rc
         full_commit = rc.groups()[0]
-        print full_commit
         parts = RE_COMMIT_WITH_PGP_SIGNATURE.match(full_commit).groupdict()
         parsed_commit = parse_commit(parts)
-        yield parsed_commit
+        dict_of_commits[parsed_commit['commit']] = parsed_commit
+
+    for key in dict_of_commits:
+        yield dict_of_commits[key]
+
+
 
 def parse_commit(parts):
     '''Accept a parsed single commit. Some of the named groups
