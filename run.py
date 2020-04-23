@@ -29,7 +29,7 @@ def main():
         '--since',
         default=None,
         help=('Show commits more recent than a specific date. If present, '
-              'this argument is passedW through to "git log" unchecked. ')
+              'this argument is passed through to "git log" unchecked. ')
     )
     parser.add_argument(
         '--until',
@@ -70,10 +70,11 @@ def run_git_log(git_dir=None, git_since=None, git_until=None):
             '--git-dir=' + git_dir,
             'log',
             '--numstat',
-            '--pretty=raw'
+            '--pretty=raw',
+            '--remotes'
         ]
     else:
-        command = ['git', 'log', '--numstat', '--pretty=raw']
+        command = ['git', 'log', '--numstat', '--pretty=raw', '--remotes']
     if git_since is not None:
         command.append('--since=' + git_since)
     if git_until is not None:

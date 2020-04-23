@@ -34,71 +34,40 @@ tree\ (?P<tree>[a-f0-9]+)\n
 RE_COMMIT = re.compile(PAT_COMMIT, re.MULTILINE | re.VERBOSE)
 
 # https://regex101.com/r/g41DnR/1
-PAT_COMMIT_WITH_SIG = (r"(commit\ (?P<commit>[a-f0-9]+)\ntree\ (?P<tree>[a-f0-9]+)\n(?P<parents>(parent\ ([a-f0-9]|\n)+)*)(?P<author>author .*)\n(?P<committer>committer .*)\n(?P<gpgsig>gpgsig -----BEGIN PGP SIGNATURE-----(.|\n|\r)+?-----END PGP SIGNATURE-----\n\n)?\n(?P<message>((\ \ \ \ [^\n]*\n)|\n)+)?(\n)?(?P<numstats>(^(\d+|-).*(\n)?)+)?)")
+# https://regex101.com/r/g41DnR/1
+# https://regex101.com/r/g41DnR/3
+PAT_COMMIT_WITH_SIG = (r"(commit\ (?P<commit>[a-f0-9]+)\ntree\ (?P<tree>[a-f0-9]+)\n(?P<parents>(parent\ ([a-f0-9]|\n)+)*)(?P<author>author .*)\n(?P<committer>committer .*)\n(?P<gpgsig>gpgsig -----BEGIN PGP SIGNATURE-----(.|\n|\r)+?-----END PGP SIGNATURE-----)?(\ \n|\n|\r)*(?P<message>((\ \ \ \ [^\n]*\n)|\n)+)?(\n)?(?P<numstats>(^(\d+|-).*(\n)?)+)?)")
 
-RE_COMMIT_WITH_PGP_SIGNATURE = re.compile(PAT_COMMIT_WITH_SIG, re.MULTILINE | re.VERBOSE)
+RE_COMMIT_WITH_PGP_SIGNATURE = re.compile(PAT_COMMIT_WITH_SIG, re.MULTILINE)
 
 # -------------------------------------------------------------------
 # Main parsing functions
 
 
 def parse_commits(data):
-    print '123'
-    print data
+    text_file = open("sample.txt", "w")
+    n = text_file.write(data)
+    text_file.close()
     '''Accept a string and parse it into many commits.
     Parse and yield each commit-dictionary.
     This function is a generator.
     '''
     raw_commits = RE_COMMIT.finditer(data)
     for rc in raw_commits:
-        print rc
         full_commit = rc.groups()[0]
         parts = RE_COMMIT.match(full_commit).groupdict()
         parsed_commit = parse_commit(parts)
         yield parsed_commit
 
-    regex = r"(commit\ (?P<commit>[a-f0-9]+)\ntree\ (?P<tree>[a-f0-9]+)\n(?P<parents>(parent\ ([a-f0-9]|\n)+)*)(?P<author>author .*)\n(?P<committer>committer .*)\n(?P<gpgsig>gpgsig -----BEGIN PGP SIGNATURE-----(.|\n|\r)+?-----END PGP SIGNATURE-----\n\n)?\n(?P<message>((\ \ \ \ [^\n]*\n)|\n)+)?(\n)?(?P<numstats>(^(\d+|-).*(\n)?)+)?)"
-
-    test_str = ("commit 4991324767f3fc14042c58894262e3a07900c0f2\n"
-      "tree e9d75a0541f8c8046c8769e909a9e3f6c4fbc995\n"
-      "parent bc977d7acfd293babdfecc0dbb00f6ee8dc22ca4\n"
-      "parent 0e609a6087468d8189baa0e280742de7a8a4970f\n"
-      "author Jon Bauer <bauerjon@hotmail.com> 1578499975 -0600\n"
-      "committer GitHub <noreply@github.com> 1578499975 -0600\n"
-      "gpgsig -----BEGIN PGP SIGNATURE-----\n\n"
-      " wsBcBAABCAAQBQJeFf+HCRBK7hj4Ov3rIwAAdHIIAF5qXLG633IAl7jNDp7KYW3H\n"
-      " 057d8y16GulwTVdb+pmQKkDkj8krWkw91Ht4/qxFi7qL9hJIjwzdhnJMvZYS0xLi\n"
-      " DXcxYw0vljFqtQKHzFxw2VAe/8H+NLUNn1kq0XConamckUNmb8QbiRtiTcCZ6Xzk\n"
-      " jcGLuUkb8cP7SXR/go/7qtuCvfQ6Jisufcm8py1KRqsrSNKZ9fij5yJpk08t806D\n"
-      " m0SGBPTCdZ+5sZXESJ9GdOGEq0HM8efWpuNfa12oA5sip7bUhnh42ZbpqcKYnc/N\n"
-      " /z/FuQBpG9oFpkVSRSONT9V5hah/i1Q4+lvLLpWln/+cWmK/V7q6yG7owJl/63Q=\n"
-      " =JJ2J\n"
-      " -----END PGP SIGNATURE-----\n\n\n"
-      "    Merge pull request #34 from PopularPays/jb-update-creator-earnings-script\n\n"
-      "    Update creator_earnings.rb\n\n"
-      "commit 0e609a6087468d8189baa0e280742de7a8a4970f\n"
-      "tree e9d75a0541f8c8046c8769e909a9e3f6c4fbc995\n"
-      "parent bc977d7acfd293babdfecc0dbb00f6ee8dc22ca4\n"
-      "author Jon Bauer <bauerjon@hotmail.com> 1578499591 -0600\n"
-      "committer GitHub <noreply@github.com> 1578499591 -0600\n"
-      "gpgsig -----BEGIN PGP SIGNATURE-----\n\n"
-      " wsBcBAABCAAQBQJeFf4HCRBK7hj4Ov3rIwAAdHIIAHf27mDGguuYshYZZU5OWYK1\n"
-      " IQI9/0RdwEmfxWip3KDt7Fqo6eaNApKUvBSEhRpUvzAr/aIR0RC49BjtIQGaxaCh\n"
-      " I+T3onfCw16AsjG+wcXZFi+S591v3H/ONHBslzranHvRgUI7s9gy5lp8ZSdocjp9\n"
-      " Wv7uh7SwlhpLWN8E7xyN1SIIdLf2zBcpR9xhkqqnHHuYdxqPn8fVX7OanEulklvb\n"
-      " 7ZVbpo2Xvo3BYrQ4pG0yhm8QX4irJOd2J1FA64vYFWAgNAcQcto8+BqpkxfIET2l\n"
-      " 3sDH837iXWdxSjSNpEziW6rjC8G7wJGN6LccHBdwT42O3ZczUJOxtMhBIP+UbtE=\n"
-      " =cSNG\n"
-      " -----END PGP SIGNATURE-----\n\n\n"
-      "    Update creator_earnings.rb\n\n"
-      "6  6 support/useful-scripts/creator_earnings.rb\n")
-
-    matches = re.finditer(regex, test_str, re.MULTILINE)
-
-    for rc in matches:
-        print 'hey'
+    raw_commits = RE_COMMIT_WITH_PGP_SIGNATURE.finditer(data)
+    for rc in raw_commits:
+        print 'yessss'
+        print rc
         full_commit = rc.groups()[0]
         print full_commit
+        parts = RE_COMMIT_WITH_PGP_SIGNATURE.match(full_commit).groupdict()
+        parsed_commit = parse_commit(parts)
+        yield parsed_commit
 
 def parse_commit(parts):
     '''Accept a parsed single commit. Some of the named groups
@@ -128,11 +97,15 @@ def parse_commit(parts):
         message_lines
         if msgline is not None
     )
-    commit['changes'] = [
-        parse_numstat_line(numstat)
-        for numstat in
-        parts['numstats'].splitlines()
-    ]
+    if parts['numstats'] is not None:
+      commit['changes'] = [
+          parse_numstat_line(numstat)
+          for numstat in
+          parts['numstats'].splitlines()
+      ]
+    else:
+      commit['changes'] = []
+
     return commit
 
 
