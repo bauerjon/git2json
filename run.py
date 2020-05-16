@@ -71,7 +71,8 @@ def run_git_log(git_dir=None, git_since=None, git_until=None):
             'log',
             '--numstat',
             '--pretty=raw',
-            '--remotes'
+            '--remotes',
+            '--date=local'
         ]
     else:
         command = ['git', 'log', '--numstat', '--pretty=raw', '--remotes']
