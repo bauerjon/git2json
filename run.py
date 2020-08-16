@@ -37,11 +37,17 @@ def main():
         help=('Show commits before a specific date. If present, '
               'this argument is passed through to "git log" unchecked. ')
     )
+    parser.add_argument(
+        '--commit_shas_string',
+        default=None,
+        help=('Show commits given a list of commit shas. If present, '
+              'this argument is passed through to "git log" unchecked. ')
+    )
     args = parser.parse_args()
     if sys.version_info < (3, 0):
-        print(git2json(run_git_log(args.git_dir, args.since, args.until)))
+        print(git2json(run_git_log(args.git_dir, args.since, args.until, args.commit_shas_string)))
     else:
-        print(git2jsons(run_git_log(args.git_dir, args.since, args.until)))
+        print(git2jsons(run_git_log(args.git_dir, args.since, args.until, args.commit_shas_string)))
 
 # -------------------------------------------------------------------
 # Main API functions
@@ -58,7 +64,7 @@ def git2json(fil):
 # Functions for interfacing with git
 
 
-def run_git_log(git_dir=None, git_since=None, git_until=None):
+def run_git_log(git_dir=None, git_since=None, git_until=None, git_commit_shas_string=None):
     '''run_git_log([git_dir]) -> File
 
     Run `git log --numstat --pretty=raw --remotes on the specified
@@ -71,15 +77,18 @@ def run_git_log(git_dir=None, git_since=None, git_until=None):
             'log',
             '--numstat',
             '--pretty=raw',
-            '--remotes',
             '--date=local'
         ]
     else:
-        command = ['git', 'log', '--numstat', '--pretty=raw', '--remotes']
+        command = ['git', 'log', '--numstat', '--pretty=raw']
     if git_since is not None:
-        command.append('--since=' + git_since)
+        command.append('--remotes --since=' + git_since)
     if git_until is not None:
-        command.append('--until=' + git_until)
+        command.append('--remotes --until=' + git_until)
+    if git_commit_shas_string is not None:
+        command.append('--no-walk')
+        all_commit_shas = git_commit_shas_string.split(' ')
+        command.extend(all_commit_shas)
     raw_git_log = subprocess.Popen(
         command,
         stdout=subprocess.PIPE
