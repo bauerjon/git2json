@@ -89,11 +89,14 @@ def parse_commit(parts):
     ]
     commit['author'] = parse_author_line(parts['author'])
     commit['committer'] = parse_committer_line(parts['committer'])
-    message_lines = [
-        parse_message_line(msgline)
-        for msgline in
-        parts['message'].split("\n")
-    ]
+    if parts['message'] is not None:
+        message_lines = [
+            parse_message_line(msgline)
+            for msgline in
+            parts['message'].split("\n")
+        ]
+    else:
+        message_lines = []
     commit['message'] = "\n".join(
         msgline
         for msgline in
